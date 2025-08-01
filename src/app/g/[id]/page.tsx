@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Heart, Sparkles } from "lucide-react"
+import { kv } from '@vercel/kv'
 
 interface PageProps {
     params: Promise<{ id: string }>
@@ -7,38 +8,44 @@ interface PageProps {
 
 async function getGreeting(id: string) {
     try {
-        // Use Vercel's internal URL for server-side calls
-        const baseUrl = process.env.VERCEL_URL
-            ? `https://${process.env.VERCEL_URL}`
-            : process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, '') || "http://localhost:3000";
+        console.log('Direct KV access for ID:', id);
 
-        const response = await fetch(
-            `${baseUrl}/api/get-greeting/${id}`,
-            {
-                cache: "no-store",
-                // Add headers for internal calls
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            },
-        )
+        // Access KV directly instead of making API call
+        const greetingData = await kv.get(`greeting:${id}`);
+        console.log('Direct KV data:', greetingData);
 
-        if (!response.ok) {
-            console.error(`API call failed: ${response.status} ${response.statusText}`);
-            return null
+        if (!greetingData) {
+            console.log('No data found in KV for key:', `greeting:${id}`);
+            return null;
         }
 
-        const data = await response.json()
-        return data.success ? { name: data.name, customMessage: data.customMessage } : null
+        // Parse the stored data (same logic as your API)
+        let parsedData;
+        try {
+            parsedData = typeof greetingData === 'string'
+                ? JSON.parse(greetingData)
+                : greetingData;
+        } catch (parseError) {
+            console.log('Parse error, using fallback:', parseError);
+            parsedData = { name: greetingData, customMessage: '' };
+        }
+
+        return {
+            name: parsedData.name || parsedData,
+            customMessage: parsedData.customMessage || '',
+        };
     } catch (error) {
-        console.error("Error fetching greeting:", error)
-        return null
+        console.error("Error with direct KV access:", error);
+        return null;
     }
 }
 
 export default async function GreetingPage({ params }: PageProps) {
     const { id } = await params
+    console.log('Greeting page for ID:', id);
+
     const greeting = await getGreeting(id)
+    console.log('Retrieved greeting:', greeting);
 
     if (!greeting) {
         return (
@@ -48,6 +55,7 @@ export default async function GreetingPage({ params }: PageProps) {
                         <div className="text-6xl">😢</div>
                         <h1 className="text-2xl font-bold text-pink-800">Oops! Link Not Found</h1>
                         <p className="text-pink-600">This special link seems to have expired or doesn&apos;t exist.</p>
+                        <p className="text-xs text-pink-400 mt-4">Debug: ID = {id}</p>
                     </CardContent>
                 </Card>
             </div>
