@@ -7,14 +7,24 @@ interface PageProps {
 
 async function getGreeting(id: string) {
     try {
+        // Use Vercel's internal URL for server-side calls
+        const baseUrl = process.env.VERCEL_URL
+            ? `https://${process.env.VERCEL_URL}`
+            : process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, '') || "http://localhost:3000";
+
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/get-greeting/${id}`,
+            `${baseUrl}/api/get-greeting/${id}`,
             {
                 cache: "no-store",
+                // Add headers for internal calls
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             },
         )
 
         if (!response.ok) {
+            console.error(`API call failed: ${response.status} ${response.statusText}`);
             return null
         }
 
