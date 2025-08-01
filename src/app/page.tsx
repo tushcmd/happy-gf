@@ -1,103 +1,163 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import type React from "react"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@/components/ui/card"
+import { Heart, Copy, Check } from "lucide-react"
+
+export default function HomePage() {
+  const [name, setName] = useState("")
+  const [link, setLink] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [customMessage, setCustomMessage] = useState("")
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!name.trim()) return
+
+    setIsLoading(true)
+    try {
+      const response = await fetch("/api/generate-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), customMessage: customMessage.trim() }),
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setLink(`${window.location.origin}/g/${data.id}`)
+      }
+    } catch (error) {
+      console.error("Error generating link:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (error) {
+      console.error("Failed to copy:", error)
+    }
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-rose-50 to-pink-200 flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <div className="flex justify-center space-x-2 text-4xl">
+            <Heart className="text-pink-500 fill-pink-500" />
+            <Heart className="text-rose-500 fill-rose-500" />
+            <Heart className="text-pink-500 fill-pink-500" />
+          </div>
+          <h1 className="text-4xl font-bold text-pink-800 leading-tight">
+            Make Her Smile This
+            <br />
+            <span className="text-rose-600">Girlfriend&apos;s Day 💕</span>
+          </h1>
+          <p className="text-pink-700 text-lg">Create a personalized surprise link just for her!</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Form */}
+        <Card className="bg-white/80 backdrop-blur-sm border-pink-200 shadow-xl">
+          <CardContent className="p-6 space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="name" className="text-sm font-medium text-pink-800">
+                  Her Beautiful Name ✨
+                </label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Enter her name..."
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="border-pink-300 focus:border-pink-500 focus:ring-pink-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="message" className="text-sm font-medium text-pink-800">
+                  Custom Message (Optional) 💌
+                </label>
+                <textarea
+                  id="message"
+                  placeholder="Add a sweet personal message... (optional)"
+                  value={customMessage}
+                  onChange={(e) => setCustomMessage(e.target.value)}
+                  className="min-h-[80px] resize-none border-pink-300 focus:border-pink-500 focus:ring-pink-500 rounded-md px-3 py-2 w-full border"
+                  maxLength={200}
+                />
+                <p className="text-xs text-pink-600">{customMessage.length}/200 characters</p>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isLoading || !name.trim()}
+                className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold py-3 rounded-lg shadow-lg transform transition hover:scale-105"
+              >
+                {isLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Creating Magic...</span>
+                  </div>
+                ) : (
+                  <>
+                    <Heart className="w-4 h-4 mr-2 fill-current" />
+                    Generate Her Special Link
+                  </>
+                )}
+              </Button>
+            </form>
+
+            {/* Generated Link */}
+            {link && (
+              <div className="space-y-4 p-4 bg-pink-50 rounded-lg border border-pink-200">
+                <div className="text-center">
+                  <p className="text-pink-800 font-medium mb-2">🎉 Her special link is ready!</p>
+                  <p className="text-sm text-pink-600 mb-4">Send this to her and watch her smile! 💖</p>
+                </div>
+
+                <div className="bg-white p-3 rounded border border-pink-200">
+                  <code className="text-xs text-pink-800 break-all block">{link}</code>
+                </div>
+
+                <Button
+                  onClick={copyToClipboard}
+                  variant="outline"
+                  className="w-full border-pink-300 text-pink-700 hover:bg-pink-50 bg-transparent"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-4 h-4 mr-2" />
+                      Copied! 🎉
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy Link
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Footer */}
+        <div className="text-center text-pink-600 text-sm">
+          <p>Made with 💕 for all the amazing girlfriends out there!</p>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
